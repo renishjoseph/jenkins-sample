@@ -1,4 +1,4 @@
-name: Create SemVer Tag
+name: Create Tag
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
         type: string
 
       tag_description:
-        description: "Annotated tag description (manual only)"
+        description: "Tag description (manual only)"
         required: false
         default: ""
         type: string
