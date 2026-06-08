@@ -111,4 +111,3 @@ jobs:
       - name: Push tag
         run: |
           git push origin "${{ steps.version.outputs.new_tag }}"
-``
