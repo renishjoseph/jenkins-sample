@@ -1,0 +1,114 @@
+name: Create SemVer Tag
+
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: "Branch or commit SHA to tag"
+        required: true
+        default: "develop"
+        type: string
+
+      tag_description:
+        description: "Annotated tag description (manual only)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      - name: Get latest SemVer tag
+        id: version
+        run: |
+          set -e
+
+          git fetch --tags --force
+
+          # Get latest semver tag (vX.Y.Z)
+          LAST_TAG=$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
+
+          if [ -z "$LAST_TAG" ]; then
+            echo "No existing tags. Starting from v1.0.0"
+            NEW_TAG="v1.0.0"
+          else
+            echo "Latest tag: $LAST_TAG"
+
+            VERSION=${LAST_TAG#v}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+
+            if echo "$COMMIT_MSG" | grep -q "BREAKING CHANGE"; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif echo "$COMMIT_MSG" | grep -q "^feat:"; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "Computed next version: $NEW_TAG"
+
+      - name: Resolve description
+        id: desc
+        run: |
+          set -e
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DESC="${{ inputs.tag_description }}"
+            if [ -z "$DESC" ]; then
+              DESC="Manual release for ${{ inputs.target_ref }}"
+            fi
+          else
+            DESC="${{ github.event.head_commit.message }}"
+            if [ -z "$DESC" ]; then
+              DESC="Auto release for commit ${{ github.sha }}"
+            fi
+          fi
+
+          {
+            echo "description<<EOF"
+            echo "$DESC"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create tag
+        run: |
+          TAG="${{ steps.version.outputs.new_tag }}"
+          MSG="${{ steps.desc.outputs.description }}"
+
+          git tag -a "$TAG" -m "$MSG"
+          echo "Created tag $TAG"
+
+      - name: Push tag
+        run: |
+          git push origin "${{ steps.version.outputs.new_tag }}"
+``
