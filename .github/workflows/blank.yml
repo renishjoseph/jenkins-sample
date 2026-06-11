@@ -33,8 +33,8 @@ jobs:
       - name: Import to Ampliance Hub
         run: |
           set -e
-
-          export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          env
+          export PATH=/usr/local/bin:$PATH
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
