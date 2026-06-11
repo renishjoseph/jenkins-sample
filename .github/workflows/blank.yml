@@ -9,8 +9,8 @@ on:
         type: choice
         options:
           - all
-          - content/content-type-schemas
-          - content/content-types
+          - content-type-schemas
+          - content-types
           - extensions
       environment:
         description: "Target environment"
@@ -30,14 +30,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Import to Ampliance Hub
         run: |
-          echo "Running \"${{ github.event.inputs.content_item }}\" import for  ${{ github.event.inputs.environment }} environment."
+          echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
           
           ITEM="${{ github.event.inputs.content_item }}"
+
+          echo "Variable is: ${VAR}"
+          echo "Password is: $PASS}"
           
           case "$ITEM" in
             all)
-              echo "content/$ITEM"
-              echo "content/$ITEM"
+              echo "content/content-type-schemas"
+              echo "content/content-types"
               echo "extensions"
               ;;
               
