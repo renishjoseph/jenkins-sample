@@ -33,12 +33,12 @@ jobs:
       - name: Import to Ampliance Hub
         run: |
           set -e
-          env
-          export PATH=/usr/local/bin:$PATH
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
-          npm install -g @amplience/dc-cli
+          npm install @amplience/dc-cli
+          export PATH=./node_modules/.bin:$PATH
+          which node
 
           ITEM="${{ github.event.inputs.content_item }}"
 
