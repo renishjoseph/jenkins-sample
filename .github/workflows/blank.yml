@@ -34,6 +34,8 @@ jobs:
         run: |
           set -e
 
+          export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
           npm install -g @amplience/dc-cli
@@ -47,7 +49,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            /usr/local/bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
