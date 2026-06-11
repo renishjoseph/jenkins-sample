@@ -38,8 +38,6 @@ jobs:
 
           npm install -g @amplience/dc-cli
 
-          find / -name 'dc-cli'
-
           ITEM="${{ github.event.inputs.content_item }}"
 
           CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
@@ -49,7 +47,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            /usr/local/bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
