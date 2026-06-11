@@ -25,19 +25,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: node:trixie
+    # container:
+    #   image: node:trixie
     environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6.4.0
       - name: Import to Ampliance Hub
         run: |
+          #!/bin/bash
           set -e
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
-          npm install @amplience/dc-cli
-          export PATH=./node_modules/.bin:$PATH
+          npm install -g @amplience/dc-cli
           which node
           which dc-cli
 
@@ -50,7 +52,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            node ./node_modules/.bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
