@@ -39,9 +39,7 @@ jobs:
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
-          npm install -g @amplience/dc-cli
-          which node
-          which dc-cli
+          npm install -@amplience/dc-cli
 
           ITEM="${{ github.event.inputs.content_item }}"
 
@@ -52,7 +50,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            ./node_modules/.bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
