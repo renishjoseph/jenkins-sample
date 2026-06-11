@@ -36,8 +36,9 @@ jobs:
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
-          npm install @amplience/dc-cli
-          
+          npm install -g @amplience/dc-cli
+          export PATH="$(npm config get prefix)/bin:$PATH"
+
           ITEM="${{ github.event.inputs.content_item }}"
 
           CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
@@ -47,7 +48,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            ./node_modules/.bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
