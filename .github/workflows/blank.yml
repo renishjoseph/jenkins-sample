@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       content_item:
-        description: "Content items to import"
+        description: "Items to import"
         required: true
         default: all
         type: choice
@@ -19,7 +19,7 @@ on:
         type: choice
         options:
           - dev
-          - qa
+          - acc
           - prod
 
 jobs:
@@ -32,26 +32,45 @@ jobs:
       - uses: actions/checkout@v4
       - name: Import to Ampliance Hub
         run: |
+          set -e
+
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
           npm install -g @amplience/dc-cli
-          
+
           ITEM="${{ github.event.inputs.content_item }}"
-          echo "Variable is: ${VAR}"
-          echo "Password is: $PASS}"
-          
-          case "$ITEM" in
+
+          CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
+
+          run_import () {
+            local TYPE=$1
+            local PATH=$2
+
+            echo "Importing ${TYPE}"
+            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+          }
+
+          case "${ITEM}" in
             all)
-              echo "content/content-type-schemas"
-              echo "content/content-types"
-              echo "extensions"
+              run_import "content-type-schema" "./content/content-type-schemas"
+              run_import "content-type" "./content/content-types"
+              run_import "extension" "./extensions"
               ;;
-              
-            content-type-schemas|content-types)
-              echo "content/$ITEM"
+
+            content-type-schemas)
+              run_import "content-type-schema" "./content/${ITEM}"
               ;;
-              
+
+            content-types)
+              run_import "content-type" "./content/${ITEM}"
+              ;;
+
             extensions)
-              echo "$ITEM"
+              run_import "extension" "./${ITEM}"
+              ;;
+
+            *)
+              echo "Invalid input: ${ITEM}. Nothing imported."
+              exit 1
               ;;
           esac
