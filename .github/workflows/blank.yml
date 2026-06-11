@@ -39,6 +39,7 @@ jobs:
           npm install @amplience/dc-cli
           export PATH=./node_modules/.bin:$PATH
           which node
+          which dc-cli
 
           ITEM="${{ github.event.inputs.content_item }}"
 
@@ -49,7 +50,7 @@ jobs:
             local PATH=$2
 
             echo "Importing ${TYPE}"
-            dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
+            ./node_modules/.bin/dc-cli "${TYPE}" import "${PATH}" ${CLI_ARGS}
           }
 
           case "${ITEM}" in
