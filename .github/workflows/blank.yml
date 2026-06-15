@@ -39,7 +39,7 @@ jobs:
 
           echo "Running import of \"${{ github.event.inputs.content_item }}\" to ${{ github.event.inputs.environment }} environment."
 
-          sudo npm install -g -@amplience/dc-cli
+          sudo npm install -g @amplience/dc-cli
 
           ITEM="${{ github.event.inputs.content_item }}"
 
