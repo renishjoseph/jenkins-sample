@@ -19,14 +19,17 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
-
-                // If user provided a different branch/commit, reset to that ref
-                if (params.TARGET_REF && params.TARGET_REF != env.GIT_BRANCH) {
-                    sh """
-                    git fetch --all --tags
-                    git checkout ${params.TARGET_REF}
-                    """
+                script {
+                    // Checkout the same repo that triggered the pipeline
+                    checkout scm
+        
+                    // If a different branch/commit was requested, switch to it
+                    if (params.TARGET_REF && params.TARGET_REF != env.GIT_BRANCH) {
+                        sh """
+                        git fetch --all --tags
+                        git checkout ${params.TARGET_REF}
+                        """
+                    }
                 }
             }
         }
