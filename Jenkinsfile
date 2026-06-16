@@ -46,7 +46,7 @@ pipeline {
         stage('Compute Next Version') {
             steps {
                 script {
-                    sh '''
+                    sh '''#!/bin/bash
                         set -e
                         git fetch --tags --force
         
