@@ -46,37 +46,38 @@ pipeline {
         stage('Compute Next Version') {
             steps {
                 script {
-                    sh """
-                    set -e
-                    git fetch --tags --force
-
-                    LAST_TAG=\$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
-
-                    if [ -z "\$LAST_TAG" ]; then
-                      NEW_TAG="v1.0.0"
-                    else
-                      VERSION=\${LAST_TAG#v}
-                      IFS='.' read -r MAJOR MINOR PATCH <<< "\$VERSION"
-                      COMMIT_MSG=\$(git log -1 --pretty=%B)
-
-                      if echo "\$COMMIT_MSG" | grep -q "BREAKING CHANGE"; then
-                        MAJOR=\$((MAJOR + 1)); MINOR=0; PATCH=0
-                      elif echo "\$COMMIT_MSG" | grep -q "^feat:"; then
-                        MINOR=\$((MINOR + 1)); PATCH=0
-                      else
-                        PATCH=\$((PATCH + 1))
-                      fi
-
-                      NEW_TAG="v\$MAJOR.\$MINOR.\$PATCH"
-                    fi
-
-                    echo "NEW_TAG=\$NEW_TAG" > version.txt
-                    """
-                    env.NEW_TAG = readFile('version.txt').trim().split('=')[1]
+                    sh '''
+                        set -e
+                        git fetch --tags --force
+        
+                        LAST_TAG=$(git tag --list "v*.*.*" --sort=-v:refname | head -n 1)
+        
+                        if [ -z "$LAST_TAG" ]; then
+                          NEW_TAG="v1.0.0"
+                        else
+                          VERSION=${LAST_TAG#v}
+                          IFS="." read -r MAJOR MINOR PATCH <<< "$VERSION"
+                          COMMIT_MSG=$(git log -1 --pretty=%B)
+        
+                          if echo "$COMMIT_MSG" | grep -q "BREAKING CHANGE"; then
+                            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+                          elif echo "$COMMIT_MSG" | grep -q "^feat:"; then
+                            MINOR=$((MINOR + 1)); PATCH=0
+                          else
+                            PATCH=$((PATCH + 1))
+                          fi
+        
+                          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+                        fi
+        
+                        echo $NEW_TAG > new_tag.txt
+                    '''
+                    env.NEW_TAG = readFile('new_tag.txt').trim()
                     echo "Computed next version: ${env.NEW_TAG}"
                 }
             }
         }
+
 
         stage('Resolve Description') {
             steps {
