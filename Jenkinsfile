@@ -19,10 +19,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([$class: 'GitSCM',
-                          branches: [[name: params.TARGET_REF]],
-                          userRemoteConfigs: [[url: 'git@github.com:your-org/your-repo.git']],
-                          extensions: [[$class: 'CloneOption', depth: 0, noTags: false]]])
+                checkout scm
+
+                // If user provided a different branch/commit, reset to that ref
+                if (params.TARGET_REF && params.TARGET_REF != env.GIT_BRANCH) {
+                    sh """
+                    git fetch --all --tags
+                    git checkout ${params.TARGET_REF}
+                    """
+                }
             }
         }
 
