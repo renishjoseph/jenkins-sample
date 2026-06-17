@@ -45,8 +45,8 @@ pipeline {
 
                 echo "Running import of \\"${CONTENT_ITEM}\\" to ${ENVIRONMENT} environment."
 
-                command -v node >/dev/null 2>&1 || (curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt-get install -y nodejs)
-
+                whoami
+                command -v node >/dev/null 2>&1 || (curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt-get install -y nodejs)
                 npm install -g @amplience/dc-cli
 
                 CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
