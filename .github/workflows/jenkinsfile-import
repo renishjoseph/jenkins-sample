@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    #agent{
-    #   label 'nuxt3-slave'
-    #}
 
     parameters {
         choice(name: 'CONTENT_ITEM',
