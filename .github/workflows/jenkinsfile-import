@@ -1,98 +1,58 @@
 pipeline {
-    agent any
-
-    parameters {
-        choice(name: 'CONTENT_ITEM',
-               choices: ['all', 'content-type-schemas', 'content-types', 'extensions'],
-               description: 'Items to import')
-        choice(name: 'ENVIRONMENT',
-               choices: ['dev', 'acc', 'prod'],
-               description: 'Target environment')
-    }
-
-    stages {
-        stage('Run in Docker') {
-            agent {
-                docker {
-                    image 'node:trixie'
-                    args '-u root'     // optional: run as root if needed
-                }
-            }
-            stages {
-                stage('Checkout') {
-                    steps {
-                        checkout scm
-                    }
-                }
-        
-                stage('Setup Environment Variables') {
-                    steps {
-                        script {
-                            if (params.ENVIRONMENT == 'dev') {
-                                env.HUB_ID        = credentials('AMPLIENCE_DEV_HUB_ID')
-                                env.CLIENT_ID     = credentials('AMPLIENCE_DEV_CLIENT_ID')
-                                env.CLIENT_SECRET = credentials('AMPLIENCE_DEV_CLIENT_SECRET')
-                            } else if (params.ENVIRONMENT == 'acc') {
-                                env.HUB_ID        = credentials('AMPLIENCE_ACC_HUB_ID')
-                                env.CLIENT_ID     = credentials('AMPLIENCE_ACC_CLIENT_ID')
-                                env.CLIENT_SECRET = credentials('AMPLIENCE_ACC_CLIENT_SECRET')
-                            } else if (params.ENVIRONMENT == 'prod') {
-                                env.HUB_ID        = credentials('AMPLIENCE_PROD_HUB_ID')
-                                env.CLIENT_ID     = credentials('AMPLIENCE_PROD_CLIENT_ID')
-                                env.CLIENT_SECRET = credentials('AMPLIENCE_PROD_CLIENT_SECRET')
-                            }
-                            echo "Configured environment: ${params.ENVIRONMENT}"
-                        }
-                    }
-                }
-        
-                stage('Import to Ampliance Hub') {
-                    steps {
-                        sh '''#!/bin/bash
-                        set -e
-        
-                        echo "Running import of \\"${CONTENT_ITEM}\\" to ${ENVIRONMENT} environment."
-        
-                        npm install -g @amplience/dc-cli
-        
-                        CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
-        
-                        run_import () {
-                        local TYPE=$1
-                        local DIRECTORY=$2
-                        echo "Importing ${TYPE}"
-                        dc-cli "${TYPE}" import "${DIRECTORY}" ${CLI_ARGS}
-                        }
-        
-                        case "${CONTENT_ITEM}" in
-                        all)
-                            run_import "content-type-schema" "./content/content-type-schemas"
-                            run_import "content-type" "./content/content-types"
-                            run_import "extension" "./extensions"
-                            ;;
-        
-                        content-type-schemas)
-                            run_import "content-type-schema" "./content/${CONTENT_ITEM}"
-                            ;;
-        
-                        content-types)
-                            run_import "content-type" "./content/${CONTENT_ITEM}"
-                            ;;
-        
-                        extensions)
-                            run_import "extension" "./${CONTENT_ITEM}"
-                            ;;
-        
-                        *)
-                            echo "Invalid input: ${CONTENT_ITEM}. Nothing imported."
-                            exit 1
-                            ;;
-                        esac
-                        '''
-                    }
-                }
-            }
+    agent {
+        docker {
+            label 'my-slave-node'
+            image 'node:trixie'
+            args '-u root'
         }
     }
 
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Import to Ampliance Hub') {
+            steps {
+                sh '''#!/bin/bash
+                set -e
+                echo "Running import of ${CONTENT_ITEM} to ${ENVIRONMENT}"
+
+                npm install -g @amplience/dc-cli
+
+                CLI_ARGS="--hubId ${HUB_ID} --clientId ${CLIENT_ID} --clientSecret ${CLIENT_SECRET}"
+
+                run_import () {
+                  local TYPE=$1
+                  local DIRECTORY=$2
+                  echo "Importing ${TYPE}"
+                  dc-cli "${TYPE}" import "${DIRECTORY}" ${CLI_ARGS}
+                }
+
+                case "${CONTENT_ITEM}" in
+                  all)
+                    run_import "content-type-schema" "./content/content-type-schemas"
+                    run_import "content-type" "./content/content-types"
+                    run_import "extension" "./extensions"
+                    ;;
+                  content-type-schemas)
+                    run_import "content-type-schema" "./content/${CONTENT_ITEM}"
+                    ;;
+                  content-types)
+                    run_import "content-type" "./content/${CONTENT_ITEM}"
+                    ;;
+                  extensions)
+                    run_import "extension" "./${CONTENT_ITEM}"
+                    ;;
+                  *)
+                    echo "Invalid input: ${CONTENT_ITEM}"
+                    exit 1
+                    ;;
+                esac
+                '''
+            }
+        }
+    }
 }
