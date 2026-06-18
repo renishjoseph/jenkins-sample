@@ -14,7 +14,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'echo successful'
+                sh './abcd.sh'
             }
         }
 
